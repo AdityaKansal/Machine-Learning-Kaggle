@@ -1,0 +1,151 @@
+count_of_images = df.shape[0]
+target_size = (500,500,3)
+
+#Our final X_train matrix would be shape of Count_of_images,shape of single image
+#We would take 500,500,3 as a sample image size and interpolate every image to this size
+
+
+#########################
+#Scaling and unoform aspect ratio
+X = np.zeros((count_of_images,target_size[0],target_size[1],target_size[2]))
+
+
+def prepare_image(each_image):
+    img = plt.imread('../input/train/' + each_image)  # Reading each image
+    img = resize(img,target_size,anti_aliasing=True)
+    return img
+
+for i in range(0,count_of_images):
+    each_img_array = prepare_image(df['Image'][i])
+    X[i] = each_img_array
+    
+    if i%1000 == 0:
+        print('processing image',i+1)
+    
+#X matrix is a collection of all images arrays with shape as (25,500,500,3)  # 25 images for now
+
+
+
+
+##################
+#Images Mean
+X_mean = np.mean(X,axis =0)
+plt.imshow(X_mean)
+
+
+
+
+#######################
+#Images Standard Deviation
+X_std = np.std(X,axis=0)
+plt.imshow(X_std)
+
+
+##########################
+grid_dim = np.int(np.sqrt(test_no))
+
+
+#grid view before normalization
+fig = plt.figure(figsize=(20,20))
+for i in range(test_no):
+    temp = fig.add_subplot(grid_dim,grid_dim,i+1)
+    temp.set_xticks([])
+    temp.set_yticks([])
+    plt.imshow(X[i])
+fig.show()  
+
+#Normalizing
+X = X- X_mean
+X = X/X_std
+
+#grid view after normalization
+fig = plt.figure(figsize=(20,20))
+for i in range(test_no):
+    temp = fig.add_subplot(grid_dim,grid_dim,i+1)
+    temp.set_xticks([])
+    temp.set_yticks([])
+    plt.imshow(X[i])
+fig.show()  
+
+
+#####################################
+#Gray images
+
+def rgb_to_gray(img):
+    return np.dot(img,[0.299, 0.587, 0.114])
+
+X_bw = np.zeros((X.shape[0],X.shape[1],X.shape[2]))
+                
+for i in range(X.shape[0]):
+    X_bw[i] = rgb_to_gray(X[i])
+
+
+
+############################################
+#Data Augmentation
+
+#random noise
+from skimage.util import random_noise
+img = X[0]    
+new_img = random_noise(img)
+plt.imshow(img) 
+
+#inversion
+from skimage.util import invert
+img = X[0]    
+new_img = invert(img)
+plt.imshow(img) 
+
+#rotate
+from skimage.transform import rotate
+img = X[0]    
+new_img = rotate(img,30)
+plt.imshow(img) 
+
+
+#change contrast
+from skimage.exposure import rescale_intensity
+v_min,v_max = np.percentile(img,(0.2,99.8))
+new_img = rescale_intensity(img,in_range = (v_min,v_max))
+plt.imshow(img)
+
+#gamma correction
+from skimage.exposure import adjust_gamma
+new_img = adjust_gamma(img,gamma = 0.4,gain=0.9)
+plt.imshow(img)
+
+
+#log correction
+from skimage.exposure import adjust_log
+new_img = adjust_log(img)
+plt.imshow(img)
+
+#Sigmoid Correction
+from skimage.exposure import adjust_sigmoid
+new_img = adjust_sigmoid(img)
+plt.imshow(img)
+
+
+#Horizontal Flip
+new_img = img[:,::-1]
+plt.imshow(img)
+
+
+#Vertical flip
+new_img = img[::-1,:]
+plt.imshow(img)
+
+#Blur image
+from scipy.ndimage import uniform_filter
+new_img = uniform_filter(img,size=(8,8,1))
+plt.imshow(img)
+
+
+
+
+
+
+
+
+
+
